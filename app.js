@@ -1,10 +1,12 @@
 const mongoose = require("mongoose");
 const passport = require("passport");
+const uploadRouter = require("./routes/uploadRouter");
 const authenticate = require("./authenticate");
 const config = require("./config");
 
 app.use(passport.initialize());
 app.use(passport.session());
+app.use("/imageUpload", uploadRouter);
 
 function auth(req, res, next) {
   console.log(req.user);
@@ -74,6 +76,21 @@ app.use(function (err, req, res, next) {
   // render the error page
   res.status(err.status || 500);
   res.render("error");
+});
+
+// Secure traffic only
+app.all("*", (req, res, next) => {
+  if (req.secure) {
+    return next();
+  } else {
+    console.log(
+      `Redirecting to: https://${req.hostname}:${app.get("secPort")}${req.url}`
+    );
+    res.redirect(
+      301,
+      `https://${req.hostname}:${app.get("secPort")}${req.url}`
+    );
+  }
 });
 
 function auth(req, res, next) {
